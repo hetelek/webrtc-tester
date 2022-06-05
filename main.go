@@ -33,6 +33,8 @@ func main() {
 	if *signalMode {
 		startSignalServer()
 	} else if *offerMode {
+		startWebrtc(*signalAddress, true)
 	} else if *answerMode {
+		startWebrtc(*signalAddress, false)
 	}
 }

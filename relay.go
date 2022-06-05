@@ -8,6 +8,15 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+var (
+	upgrader = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
+	}
+	pendingConn *RelayConnection
+)
+
 type RelayConnection struct {
 	conn   *websocket.Conn
 	other  *RelayConnection
@@ -27,15 +36,6 @@ func (rc *RelayConnection) Close() {
 	}
 }
 
-var (
-	upgrader = websocket.Upgrader{
-		CheckOrigin: func(r *http.Request) bool {
-			return true
-		},
-	}
-	pendingConn *RelayConnection
-)
-
 func relay(w http.ResponseWriter, r *http.Request) {
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -49,8 +49,10 @@ func relay(w http.ResponseWriter, r *http.Request) {
 	if pendingConn != nil && !pendingConn.closed {
 		log.Println("starting relay")
 		relayConn.other = pendingConn
-		pendingConn.other = relayConn
+		relayConn.other.other = relayConn
 		pendingConn = nil
+		go relayConn.conn.WriteMessage(websocket.BinaryMessage, startPayload)
+		go relayConn.other.conn.WriteMessage(websocket.BinaryMessage, startPayload)
 	} else {
 		log.Println("client connected, waiting for peer")
 		pendingConn = relayConn

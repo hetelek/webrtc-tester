@@ -166,6 +166,7 @@ func (conn *WebrtcConn) processMessage(payload []byte) {
 				conn.send(answer)
 			}
 		case json.Unmarshal(payload, &candidate) == nil && candidate.Candidate != "":
+			log.Printf("received candidate: %s\n", candidate.Candidate)
 			if err := conn.pc.AddICECandidate(candidate); err != nil {
 				panic(err)
 			}

@@ -1,6 +1,6 @@
 ## Webrtc Tester
 
-Webrtc tester is a simple tool that allows you to connect 2 webrtc clients and send messages over a data channel.
+webrtc-tester is a simple tool that allows you to connect 2 webrtc clients and send messages over a data channel.
 
 ## Usage
 1. Start signaling server
@@ -15,10 +15,10 @@ Webrtc tester is a simple tool that allows you to connect 2 webrtc clients and s
 
 3. Start answerer
 ```
-./webrtc_tester -offerer -signal-address ws://SIGNAL_SERVER:8080/relay
+./webrtc_tester -answerer -signal-address ws://SIGNAL_SERVER:8080/relay
 ```
 
-4. Machines 2 and 3 will attempt to connect
+4. Machines 2 and 3 will attempt to connect and send messages over a data channel
 
 ## Compiling
 Standard:

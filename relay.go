@@ -81,5 +81,6 @@ func relay(w http.ResponseWriter, r *http.Request) {
 
 func startSignalServer() {
 	http.HandleFunc("/relay", relay)
+	log.Println("hosting signal server at :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

@@ -1,11 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/gorilla/websocket"
+	"github.com/pion/stun"
 )
 
 var (
@@ -81,8 +85,65 @@ func relay(w http.ResponseWriter, r *http.Request) {
 	go startPump(relayConn)
 }
 
+func getPublicIP(networkType string) string {
+	c, err := stun.Dial(networkType, "stun.l.google.com:19302")
+	if err != nil {
+		return ""
+	}
+	message := stun.MustBuild(stun.TransactionID, stun.BindingRequest)
+
+	var publicIP string
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	err = c.Do(message, func(res stun.Event) {
+		defer wg.Done()
+		if res.Error != nil {
+			return
+		}
+		var xorAddr stun.XORMappedAddress
+		if err := xorAddr.GetFrom(res.Message); err != nil {
+			return
+		}
+		publicIP = xorAddr.IP.String()
+	})
+	if err != nil {
+		return ""
+	}
+	wg.Wait()
+	return publicIP
+}
+
+func printExampleCommands() {
+	const (
+		signalServerFormat           = "ws://%s:8080/relay"
+		exampleOffererCommandFormat  = "./%s -offerer -signal-address \"%s\""
+		exampleAnswererCommandFormat = "./%s -answerer -signal-address \"%s\""
+	)
+
+	binaryName := filepath.Base(os.Args[0])
+	publicIPv4 := getPublicIP("udp4")
+	if len(publicIPv4) > 0 {
+		address := fmt.Sprintf(signalServerFormat, publicIPv4)
+		offerExample := fmt.Sprintf(exampleOffererCommandFormat, binaryName, address)
+		answerExample := fmt.Sprintf(exampleAnswererCommandFormat, binaryName, address)
+		fmt.Printf("example (ipv4):\n%s\n%s\n", offerExample, answerExample)
+		fmt.Println()
+	}
+
+	publicIPv6 := getPublicIP("udp6")
+	if len(publicIPv6) > 0 {
+		publicIPv6 = fmt.Sprintf("[%s]", publicIPv6)
+		address := fmt.Sprintf(signalServerFormat, publicIPv6)
+		offerExample := fmt.Sprintf(exampleOffererCommandFormat, binaryName, address)
+		answerExample := fmt.Sprintf(exampleAnswererCommandFormat, binaryName, address)
+		fmt.Printf("example (ipv6):\n%s\n%s\n", offerExample, answerExample)
+		fmt.Println()
+	}
+}
+
 func startSignalServer() {
 	http.HandleFunc("/relay", relay)
 	log.Println("hosting signal server at :8080")
+	go printExampleCommands()
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

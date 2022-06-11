@@ -9,6 +9,6 @@ require (
 )
 
 replace (
-	github.com/pion/ice/v2 v2.2.6 => github.com/hetelek/ice/v2 v2.3.2
+	github.com/pion/ice/v2 v2.2.6 => github.com/hetelek/ice/v2 v2.3.4
 	github.com/pion/turn/v2 v2.0.8 => github.com/hetelek/turn/v2 v2.1.0
 )

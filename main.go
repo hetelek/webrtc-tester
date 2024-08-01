@@ -14,6 +14,7 @@ func main() {
 	offerMode := flag.Bool("offerer", false, "if true, act as the offerer")
 	answerMode := flag.Bool("answerer", false, "if true, act as the answerer")
 	signalAddress := flag.String("signal-address", signalAddressExample, "the URL of the signal server")
+	signalPort := flag.Int("port", 8080, "the port to serve the signal server")
 	flag.Parse()
 
 	checks := []*bool{signalMode, offerMode, answerMode}
@@ -31,7 +32,7 @@ func main() {
 	}
 
 	if *signalMode {
-		startSignalServer()
+		startSignalServer(*signalPort)
 	} else if *offerMode {
 		startWebrtc(*signalAddress, true)
 	} else if *answerMode {

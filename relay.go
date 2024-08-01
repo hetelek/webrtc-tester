@@ -113,9 +113,9 @@ func getPublicIP(networkType string) string {
 	return publicIP
 }
 
-func printExampleCommands() {
+func printExampleCommands(port int) {
 	const (
-		signalServerFormat           = "ws://%s:8080/relay"
+		signalServerFormat           = "ws://%s:%d/relay"
 		exampleOffererCommandFormat  = "./%s -offerer -signal-address \"%s\""
 		exampleAnswererCommandFormat = "./%s -answerer -signal-address \"%s\""
 	)
@@ -123,7 +123,7 @@ func printExampleCommands() {
 	binaryName := filepath.Base(os.Args[0])
 	publicIPv4 := getPublicIP("udp4")
 	if len(publicIPv4) > 0 {
-		address := fmt.Sprintf(signalServerFormat, publicIPv4)
+		address := fmt.Sprintf(signalServerFormat, publicIPv4, port)
 		offerExample := fmt.Sprintf(exampleOffererCommandFormat, binaryName, address)
 		answerExample := fmt.Sprintf(exampleAnswererCommandFormat, binaryName, address)
 		fmt.Printf("example (ipv4):\n%s\n%s\n", offerExample, answerExample)
@@ -133,7 +133,7 @@ func printExampleCommands() {
 	publicIPv6 := getPublicIP("udp6")
 	if len(publicIPv6) > 0 {
 		publicIPv6 = fmt.Sprintf("[%s]", publicIPv6)
-		address := fmt.Sprintf(signalServerFormat, publicIPv6)
+		address := fmt.Sprintf(signalServerFormat, publicIPv6, port)
 		offerExample := fmt.Sprintf(exampleOffererCommandFormat, binaryName, address)
 		answerExample := fmt.Sprintf(exampleAnswererCommandFormat, binaryName, address)
 		fmt.Printf("example (ipv6):\n%s\n%s\n", offerExample, answerExample)
@@ -141,9 +141,9 @@ func printExampleCommands() {
 	}
 }
 
-func startSignalServer() {
+func startSignalServer(port int) {
 	http.HandleFunc("/relay", relay)
-	log.Println("hosting signal server at :8080")
-	go printExampleCommands()
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Printf("hosting signal server at :%d", port)
+	go printExampleCommands(port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
 }
